@@ -1,0 +1,15 @@
+video-files:
+    - example1.avi
+breakpoints:
+    -
+        time: 00:00:00.00
+        ease-function: linear
+        speed: 1
+    -
+        time: 00:00:01.00
+        ease-function: ease
+        speed: 2
+    -
+        time: 00:00:02.00
+        ease-function: ease-in-out
+        speed: 0.5
