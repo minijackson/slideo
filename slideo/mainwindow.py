@@ -157,6 +157,10 @@ class MainWindow(QMainWindow):
         playerTimeSeparator       = DoubleClickableLabel(" / ")
         self.playerDurationViewer = DoubleClickableLabel("00:00:00.000")
 
+        self.playerPositionViewer.setEnabled(False)
+        playerTimeSeparator.setEnabled(False)
+        self.playerDurationViewer.setEnabled(False)
+
         playerTimeViewerLayout.addWidget(self.playerPositionViewer)
         playerTimeViewerLayout.addWidget(playerTimeSeparator)
         playerTimeViewerLayout.addWidget(self.playerDurationViewer)
@@ -194,7 +198,9 @@ class MainWindow(QMainWindow):
         self.projectActivated.connect(self.playerStartButton.setFocus)
         self.projectActivated.connect(playerSeekForwardButton.setEnabled)
         self.projectActivated.connect(self.slider.setEnabled)
-
+        self.projectActivated.connect(self.playerPositionViewer.setEnabled)
+        self.projectActivated.connect(playerTimeSeparator.setEnabled)
+        self.projectActivated.connect(self.playerDurationViewer.setEnabled)
         self.projectActivated.connect(self.videoPlayer.activateVideo)
 
         self.videoPlayer.player.stateChanged.connect(self.updatePlayButtonIcon)
