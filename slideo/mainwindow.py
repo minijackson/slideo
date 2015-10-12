@@ -191,6 +191,7 @@ class MainWindow(QMainWindow):
         # Activations
         self.projectActivated.connect(playerSeekBackwardButton.setEnabled)
         self.projectActivated.connect(self.playerStartButton.setEnabled)
+        self.projectActivated.connect(self.playerStartButton.setFocus)
         self.projectActivated.connect(playerSeekForwardButton.setEnabled)
         self.projectActivated.connect(self.slider.setEnabled)
 
