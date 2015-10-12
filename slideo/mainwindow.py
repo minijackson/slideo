@@ -3,10 +3,12 @@
 
 from slideo.videoplayermanager import VideoPlayerManager
 from slideo.projectmanager import ProjectManager
+from slideo.doubleclickablelabel import DoubleClickableLabel
+from slideo.timeselectdialog import TimeSelectDialog
 
-from PyQt5.QtWidgets import QWidget, QMainWindow, QAction, QDockWidget, QListView, QHBoxLayout, QVBoxLayout, QPushButton, QSlider, QFileDialog
+from PyQt5.QtWidgets import QWidget, QMainWindow, QAction, QDockWidget, QListView, QHBoxLayout, QVBoxLayout, QPushButton, QSlider, QFileDialog, QLabel
 from PyQt5.QtGui import QIcon, QKeySequence
-from PyQt5.QtCore import pyqtSignal, QCoreApplication, Qt, QStringListModel, QUrl, QFileInfo
+from PyQt5.QtCore import pyqtSignal, QCoreApplication, Qt, QStringListModel, QUrl, QFileInfo, QTime
 from PyQt5.QtMultimedia import QMediaPlayer
 
 class MainWindow(QMainWindow):
@@ -72,6 +74,13 @@ class MainWindow(QMainWindow):
         startFromHereAction.setDisabled(True)
         viewMenu.addAction(startFromHereAction)
 
+        viewMenu.addSeparator()
+
+        jumpToTimeAction = QAction(QIcon.fromTheme("go-jump"), "&Jump to specific time", self)
+        jumpToTimeAction.setShortcut(QKeySequence("Ctrl+T"))
+        jumpToTimeAction.setDisabled(True)
+        viewMenu.addAction(jumpToTimeAction)
+
         # =============
         # == Toolbar ==
         # =============
@@ -99,9 +108,11 @@ class MainWindow(QMainWindow):
         # =================
 
         openPresentationAction.triggered.connect(self.openProject)
+        jumpToTimeAction.triggered.connect(self.showTimeSelectDialog)
 
         self.projectActivated.connect(startSlideshowAction.setEnabled)
         self.projectActivated.connect(startFromHereAction.setEnabled)
+        self.projectActivated.connect(jumpToTimeAction.setEnabled)
 
     def initCentralZone(self):
         self.centralZone = QWidget()
@@ -137,6 +148,23 @@ class MainWindow(QMainWindow):
         self.slider.setEnabled(False)
         playerToolbarLayout.addWidget(self.slider)
 
+        playerTimeViewerWidget = QWidget()
+        playerTimeViewerLayout = QHBoxLayout()
+        playerTimeViewerLayout.setSpacing(0)
+        playerTimeViewerLayout.setContentsMargins(0, 0, 0, 0)
+
+        self.playerPositionViewer = DoubleClickableLabel("00:00:00.000")
+        playerTimeSeparator       = DoubleClickableLabel(" / ")
+        self.playerDurationViewer = DoubleClickableLabel("00:00:00.000")
+
+        playerTimeViewerLayout.addWidget(self.playerPositionViewer)
+        playerTimeViewerLayout.addWidget(playerTimeSeparator)
+        playerTimeViewerLayout.addWidget(self.playerDurationViewer)
+
+        playerTimeViewerWidget.setLayout(playerTimeViewerLayout)
+        playerToolbarLayout.addWidget(playerTimeViewerWidget)
+        playerToolbarLayout.setContentsMargins(0, 0, 0, 0)
+
         playerToolbarWidget = QWidget()
         playerToolbarWidget.setLayout(playerToolbarLayout)
         centralZoneLayout.addWidget(playerToolbarWidget)
@@ -170,7 +198,17 @@ class MainWindow(QMainWindow):
 
         self.videoPlayer.player.stateChanged.connect(self.updatePlayButtonIcon)
         self.videoPlayer.player.durationChanged.connect(self.updateSliderRange)
+        self.videoPlayer.player.durationChanged.connect(self.updateDurationViewer)
         self.videoPlayer.player.positionChanged.connect(self.updateSliderPosition)
+        self.videoPlayer.player.positionChanged.connect(self.updatePositionViewer)
+
+        self.playerPositionViewer.mouseDoubleClicked.connect(self.showTimeSelectDialog)
+        playerTimeSeparator.mouseDoubleClicked.connect(self.showTimeSelectDialog)
+        self.playerDurationViewer.mouseDoubleClicked.connect(self.showTimeSelectDialog)
+
+    def showTimeSelectDialog(self):
+        timeSelect = TimeSelectDialog(self, self.videoPlayer)
+        timeSelect.exec()
 
     def showFullscreen(self, value):
         if value:
@@ -179,7 +217,7 @@ class MainWindow(QMainWindow):
             self.showNormal()
 
     def openProject(self):
-        filename, _ = QFileDialog.getOpenFileName(self, "Open Project")
+        filename, _ = QFileDialog.getOpenFileName(self, "Open Project", "", "Slideo project file (*.eo)")
         if filename != '':
             self.project = ProjectManager(filename)
             self.projectActivated.emit(True)
@@ -195,3 +233,13 @@ class MainWindow(QMainWindow):
 
     def updateSliderPosition(self, position):
         self.slider.setValue(position)
+
+    def updateDurationViewer(self, duration):
+        qDuration = QTime(0, 0, 0)
+        qDuration = qDuration.addMSecs(duration)
+        self.playerDurationViewer.setText(qDuration.toString("HH:mm:ss.zzz"))
+
+    def updatePositionViewer(self, position):
+        qPosition = QTime(0, 0, 0)
+        qPosition = qPosition.addMSecs(position)
+        self.playerPositionViewer.setText(qPosition.toString("HH:mm:ss.zzz"))
