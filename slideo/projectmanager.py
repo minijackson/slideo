@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import yaml
-from os.path import dirname
+from os.path import dirname, basename
 from PyQt5.QtCore import pyqtSignal, QObject
 
 class ProjectManager(QObject):
@@ -12,6 +12,7 @@ class ProjectManager(QObject):
         super().__init__()
 
         self.projectFile = projectFile
+        self.isSaved = True
 
         f = open(projectFile, "r")
         self.project = yaml.load(f.read())
@@ -21,12 +22,28 @@ class ProjectManager(QObject):
         self.sortedBreakpoints = sorted(self.project["breakpoints"])
 
         self.breakpointsChanged.connect(self.updateSortedBreakpoints)
+        self.breakpointsChanged.connect(self.changeProjectSavedStatus)
+
+    def saveProject(self):
+        tempProject = self.project.copy()
+        tempProject["breakpoints"] = list(tempProject["breakpoints"])
+
+        f = open(self.projectFile, "w")
+        yaml.dump(tempProject, f)
+        f.close()
+        self.isSaved = True
+
+    def changeProjectSavedStatus(self):
+        self.isSaved = False
 
     def getVideoFiles(self):
         return self.project["video-files"]
 
     def getProjectFileLocation(self):
         return dirname(self.projectFile)
+
+    def getProjectFileBaseName(self):
+        return basename(self.projectFile)
 
     def getBreakpoints(self):
         return self.project["breakpoints"]

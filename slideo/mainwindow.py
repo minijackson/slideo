@@ -23,8 +23,11 @@ class MainWindow(QMainWindow):
         self.initCentralZone()
         self.initActionWidgets()
 
+        self.statusBar().showMessage("")
         self.resize(800, 600)
-        self.setWindowTitle("Slideo")
+
+        self.updateWindowTitle()
+        self.projectActivated.connect(self.updateWindowTitle)
 
         self.show()
 
@@ -43,6 +46,18 @@ class MainWindow(QMainWindow):
         openPresentationAction = QAction(QIcon.fromTheme("document-open"), "&Open presentation", self)
         openPresentationAction.setShortcut(QKeySequence("Ctrl+O"))
         fileMenu.addAction(openPresentationAction)
+
+        fileMenu.addSeparator()
+
+        self.saveProjectAction = QAction(QIcon.fromTheme("document-save"), "&Save presentation", self)
+        self.saveProjectAction.setShortcut(QKeySequence("Ctrl+S"))
+        self.saveProjectAction.setEnabled(False)
+        fileMenu.addAction(self.saveProjectAction)
+
+        self.saveProjectAsAction = QAction(QIcon.fromTheme("document-save-as"), "Save presentation &as...", self)
+        self.saveProjectAsAction.setShortcut(QKeySequence("Ctrl+Shift+S"))
+        self.saveProjectAsAction.setEnabled(False)
+        fileMenu.addAction(self.saveProjectAsAction)
 
         fileMenu.addSeparator()
 
@@ -137,18 +152,22 @@ class MainWindow(QMainWindow):
         # =================
 
         openPresentationAction.triggered.connect(self.openProject)
+        self.saveProjectAction.triggered.connect(self.saveProject)
 
         self.addBreakpointAction.triggered.connect(self.showAddBreakpointDialog)
+        self.addBreakpointHereAction.triggered.connect(self.addBreakpointHere)
 
         jumpToTimeAction.triggered.connect(self.showTimeSelectDialog)
 
+        self.projectActivated.connect(self.saveProjectAction.setEnabled)
+        self.projectActivated.connect(self.saveProjectAsAction.setEnabled)
         self.projectActivated.connect(self.addBreakpointAction.setEnabled)
         self.projectActivated.connect(self.addBreakpointHereAction.setEnabled)
         self.projectActivated.connect(startSlideshowAction.setEnabled)
         self.projectActivated.connect(startFromHereAction.setEnabled)
         self.projectActivated.connect(jumpToTimeAction.setEnabled)
-        self.projectActivated.connect(self.connectBreakpointsUpdate)
         self.projectActivated.connect(self.breakpointListView.setEnabled)
+        self.projectActivated.connect(self.projectConnections)
 
     def initCentralZone(self):
         self.centralZone = QWidget()
@@ -249,6 +268,16 @@ class MainWindow(QMainWindow):
         playerTimeSeparator.mouseDoubleClicked.connect(self.showTimeSelectDialog)
         self.playerDurationViewer.mouseDoubleClicked.connect(self.showTimeSelectDialog)
 
+    def updateWindowTitle(self):
+        if self.project == None:
+            self.setWindowTitle("Slideo")
+        else:
+            prefix = ""
+            if not self.project.isSaved:
+                prefix = "*"
+
+            self.setWindowTitle(prefix + "Slideo: " + self.project.getProjectFileBaseName())
+
     def showTimeSelectDialog(self):
         dialog = JumpToTimeDialog(self, self.videoPlayer)
         dialog.exec()
@@ -264,7 +293,12 @@ class MainWindow(QMainWindow):
         if filename != '':
             self.project = ProjectManager(filename)
             self.projectActivated.emit(True)
-            self.project.breakpointsChanged.emit()
+            self.updateDockBreakpoints()
+
+    def saveProject(self):
+        self.project.saveProject()
+        self.statusBar().showMessage("Project saved.")
+        self.updateWindowTitle()
 
     def updatePlayButtonIcon(self, state):
         if state == QMediaPlayer.PlayingState:
@@ -292,8 +326,12 @@ class MainWindow(QMainWindow):
         dialog = AddBreakPointDialog(self, self.videoPlayer, self.project)
         dialog.exec()
 
-    def connectBreakpointsUpdate(self):
+    def addBreakpointHere(self):
+        self.project.addBreakpoint(self.videoPlayer.player.position())
+
+    def projectConnections(self):
         self.project.breakpointsChanged.connect(self.updateDockBreakpoints)
+        self.project.breakpointsChanged.connect(self.updateWindowTitle)
 
     def showDockContextMenu(self, contextMenuRelativePosition):
         contextMenuGlobalPosition = self.breakpointListView \

@@ -56,6 +56,12 @@ docs/_build/
 # PyBuilder
 target/
 
+# Tag files
+tags
+
+# Backup files
+*.bak
+
 # Created by https://www.gitignore.io/api/vim
 
 ### Vim ###
@@ -65,4 +71,3 @@ target/
 Session.vim
 .netrwhist
 *~
-
