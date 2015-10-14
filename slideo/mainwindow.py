@@ -86,6 +86,7 @@ class MainWindow(QMainWindow):
 
         self.breakpointListView = QListView()
         self.breakpointListView.setEnabled(False)
+        self.breakpointListView.setSelectionMode(QListView.ExtendedSelection)
 
         self.breakpointListModel = QStringListModel()
         self.breakpointListModel.dataChanged.connect(self.updateProjectBreakpoint)
@@ -95,6 +96,10 @@ class MainWindow(QMainWindow):
         breakpointsDock = QDockWidget("Breakpoints", self)
         breakpointsDock.setWidget(self.breakpointListView)
         breakpointsDock.setContextMenuPolicy(Qt.CustomContextMenu)
+
+        self.removeDockBreakpointAction = QAction(QIcon.fromTheme("list-remove"), "&Remove breakpoint", self)
+        self.removeDockBreakpointAction.setEnabled(False)
+
         breakpointsDock.customContextMenuRequested.connect(self.showDockContextMenu)
         self.addDockWidget(Qt.LeftDockWidgetArea, breakpointsDock)
 
@@ -109,7 +114,7 @@ class MainWindow(QMainWindow):
         self.addBreakpointAction.setEnabled(False)
         editMenu.addAction(self.addBreakpointAction)
 
-        self.addBreakpointHereAction = QAction("Add breakpoint &here", self)
+        self.addBreakpointHereAction = QAction("Add breakpoint at &current position", self)
         self.addBreakpointHereAction.setShortcut(QKeySequence("Ctrl+Shift+B"))
         self.addBreakpointHereAction.setEnabled(False)
         editMenu.addAction(self.addBreakpointHereAction)
@@ -156,6 +161,7 @@ class MainWindow(QMainWindow):
 
         self.addBreakpointAction.triggered.connect(self.showAddBreakpointDialog)
         self.addBreakpointHereAction.triggered.connect(self.addBreakpointHere)
+        self.removeDockBreakpointAction.triggered.connect(self.removeDockBreakpoints)
 
         jumpToTimeAction.triggered.connect(self.showTimeSelectDialog)
 
@@ -163,6 +169,7 @@ class MainWindow(QMainWindow):
         self.projectActivated.connect(self.saveProjectAsAction.setEnabled)
         self.projectActivated.connect(self.addBreakpointAction.setEnabled)
         self.projectActivated.connect(self.addBreakpointHereAction.setEnabled)
+        self.projectActivated.connect(self.removeDockBreakpointAction.setEnabled)
         self.projectActivated.connect(startSlideshowAction.setEnabled)
         self.projectActivated.connect(startFromHereAction.setEnabled)
         self.projectActivated.connect(jumpToTimeAction.setEnabled)
@@ -329,6 +336,13 @@ class MainWindow(QMainWindow):
     def addBreakpointHere(self):
         self.project.addBreakpoint(self.videoPlayer.player.position())
 
+    def removeDockBreakpoints(self, index):
+        indexes = self.breakpointListView.selectedIndexes()
+        positions = []
+        for index in indexes:
+            positions.append(self.project.getSortedBreakpoints()[index.row()])
+        self.project.removeBreakpoints(positions)
+
     def projectConnections(self):
         self.project.breakpointsChanged.connect(self.updateDockBreakpoints)
         self.project.breakpointsChanged.connect(self.updateWindowTitle)
@@ -339,6 +353,7 @@ class MainWindow(QMainWindow):
         contextMenu = QMenu()
         contextMenu.addAction(self.addBreakpointAction)
         contextMenu.addAction(self.addBreakpointHereAction)
+        contextMenu.addAction(self.removeDockBreakpointAction)
         contextMenu.exec(contextMenuGlobalPosition)
 
     def updateDockBreakpoints(self):

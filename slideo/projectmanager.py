@@ -62,6 +62,11 @@ class ProjectManager(QObject):
         self.project["breakpoints"].remove(position)
         self.breakpointsChanged.emit()
 
+    def removeBreakpoints(self, positions):
+        for position in positions:
+            self.project["breakpoints"].remove(position)
+        self.breakpointsChanged.emit()
+
     def replaceBreakpoint(self, oldPosition, newPosition):
         self.project["breakpoints"].remove(oldPosition)
         self.project["breakpoints"].add(newPosition)
