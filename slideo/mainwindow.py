@@ -4,9 +4,10 @@
 from slideo.videoplayermanager import VideoPlayerManager
 from slideo.projectmanager import ProjectManager
 from slideo.doubleclickablelabel import DoubleClickableLabel
-from slideo.timeselectdialog import TimeSelectDialog
+from slideo.timeselectdialog import JumpToTimeDialog, AddBreakPointDialog
+from slideo.utils import parseTime
 
-from PyQt5.QtWidgets import QWidget, QMainWindow, QAction, QDockWidget, QListView, QHBoxLayout, QVBoxLayout, QPushButton, QSlider, QFileDialog, QLabel
+from PyQt5.QtWidgets import QWidget, QMainWindow, QAction, QDockWidget, QListView, QHBoxLayout, QVBoxLayout, QPushButton, QSlider, QFileDialog, QLabel, QMenu
 from PyQt5.QtGui import QIcon, QKeySequence
 from PyQt5.QtCore import pyqtSignal, QCoreApplication, Qt, QStringListModel, QUrl, QFileInfo, QTime
 from PyQt5.QtMultimedia import QMediaPlayer
@@ -50,6 +51,54 @@ class MainWindow(QMainWindow):
         quitAction.triggered.connect(QCoreApplication.instance().quit)
         fileMenu.addAction(quitAction)
 
+        # =============
+        # == Toolbar ==
+        # =============
+
+        startSlideshowAction = QAction(QIcon.fromTheme("media-playback-start"), "&Start slideshow", self)
+        startSlideshowAction.setShortcut(QKeySequence("F5"))
+        startSlideshowAction.setDisabled(True)
+
+        toolbar = self.addToolBar("Main toolbar")
+        toolbar.addAction(newPresentationAction)
+        toolbar.addAction(openPresentationAction)
+        toolbar.addSeparator()
+        toolbar.addAction(startSlideshowAction)
+
+        # ==========
+        # == Dock ==
+        # ==========
+
+        self.breakpointListView = QListView()
+        self.breakpointListView.setEnabled(False)
+
+        self.breakpointListModel = QStringListModel()
+        self.breakpointListModel.dataChanged.connect(self.updateProjectBreakpoint)
+
+        self.breakpointListView.setModel(self.breakpointListModel)
+
+        breakpointsDock = QDockWidget("Breakpoints", self)
+        breakpointsDock.setWidget(self.breakpointListView)
+        breakpointsDock.setContextMenuPolicy(Qt.CustomContextMenu)
+        breakpointsDock.customContextMenuRequested.connect(self.showDockContextMenu)
+        self.addDockWidget(Qt.LeftDockWidgetArea, breakpointsDock)
+
+        # ===============
+        # == Edit Menu ==
+        # ===============
+
+        editMenu = self.menuBar().addMenu("&Edit")
+
+        self.addBreakpointAction = QAction(QIcon.fromTheme("list-add"), "&Add breakpoint", self)
+        self.addBreakpointAction.setShortcut(QKeySequence("Ctrl+B"))
+        self.addBreakpointAction.setEnabled(False)
+        editMenu.addAction(self.addBreakpointAction)
+
+        self.addBreakpointHereAction = QAction("Add breakpoint &here", self)
+        self.addBreakpointHereAction.setShortcut(QKeySequence("Ctrl+Shift+B"))
+        self.addBreakpointHereAction.setEnabled(False)
+        editMenu.addAction(self.addBreakpointHereAction)
+
         # ===============
         # == View Menu ==
         # ===============
@@ -64,9 +113,6 @@ class MainWindow(QMainWindow):
 
         viewMenu.addSeparator()
 
-        startSlideshowAction = QAction(QIcon.fromTheme("media-playback-start"), "&Start slideshow", self)
-        startSlideshowAction.setShortcut(QKeySequence("F5"))
-        startSlideshowAction.setDisabled(True)
         viewMenu.addAction(startSlideshowAction)
 
         startFromHereAction = QAction("&Start slideshow from here", self)
@@ -81,38 +127,28 @@ class MainWindow(QMainWindow):
         jumpToTimeAction.setDisabled(True)
         viewMenu.addAction(jumpToTimeAction)
 
-        # =============
-        # == Toolbar ==
-        # =============
+        viewMenu.addSeparator()
 
-        toolbar = self.addToolBar("Main toolbar")
-        toolbar.addAction(newPresentationAction)
-        toolbar.addAction(openPresentationAction)
-        toolbar.addSeparator()
-        toolbar.addAction(startSlideshowAction)
-
-        # ==========
-        # == Dock ==
-        # ==========
-
-        self.breakpointListView = QListView()
-        self.breakpointListModel = QStringListModel()
-        self.breakpointListView.setModel(self.breakpointListModel)
-
-        breakpointsDock = QDockWidget("Breakpoints", self)
-        breakpointsDock.setWidget(self.breakpointListView)
-        self.addDockWidget(Qt.LeftDockWidgetArea, breakpointsDock)
+        viewMenu.addAction(toolbar.toggleViewAction())
+        viewMenu.addAction(breakpointsDock.toggleViewAction())
 
         # =================
         # == Connections ==
         # =================
 
         openPresentationAction.triggered.connect(self.openProject)
+
+        self.addBreakpointAction.triggered.connect(self.showAddBreakpointDialog)
+
         jumpToTimeAction.triggered.connect(self.showTimeSelectDialog)
 
+        self.projectActivated.connect(self.addBreakpointAction.setEnabled)
+        self.projectActivated.connect(self.addBreakpointHereAction.setEnabled)
         self.projectActivated.connect(startSlideshowAction.setEnabled)
         self.projectActivated.connect(startFromHereAction.setEnabled)
         self.projectActivated.connect(jumpToTimeAction.setEnabled)
+        self.projectActivated.connect(self.connectBreakpointsUpdate)
+        self.projectActivated.connect(self.breakpointListView.setEnabled)
 
     def initCentralZone(self):
         self.centralZone = QWidget()
@@ -214,8 +250,8 @@ class MainWindow(QMainWindow):
         self.playerDurationViewer.mouseDoubleClicked.connect(self.showTimeSelectDialog)
 
     def showTimeSelectDialog(self):
-        timeSelect = TimeSelectDialog(self, self.videoPlayer)
-        timeSelect.exec()
+        dialog = JumpToTimeDialog(self, self.videoPlayer)
+        dialog.exec()
 
     def showFullscreen(self, value):
         if value:
@@ -228,6 +264,7 @@ class MainWindow(QMainWindow):
         if filename != '':
             self.project = ProjectManager(filename)
             self.projectActivated.emit(True)
+            self.project.breakpointsChanged.emit()
 
     def updatePlayButtonIcon(self, state):
         if state == QMediaPlayer.PlayingState:
@@ -250,3 +287,29 @@ class MainWindow(QMainWindow):
         qPosition = QTime(0, 0, 0)
         qPosition = qPosition.addMSecs(position)
         self.playerPositionViewer.setText(qPosition.toString("HH:mm:ss.zzz"))
+
+    def showAddBreakpointDialog(self):
+        dialog = AddBreakPointDialog(self, self.videoPlayer, self.project)
+        dialog.exec()
+
+    def connectBreakpointsUpdate(self):
+        self.project.breakpointsChanged.connect(self.updateDockBreakpoints)
+
+    def showDockContextMenu(self, contextMenuRelativePosition):
+        contextMenuGlobalPosition = self.breakpointListView \
+                                        .mapToGlobal(contextMenuRelativePosition)
+        contextMenu = QMenu()
+        contextMenu.addAction(self.addBreakpointAction)
+        contextMenu.addAction(self.addBreakpointHereAction)
+        contextMenu.exec(contextMenuGlobalPosition)
+
+    def updateDockBreakpoints(self):
+        breakpointList = []
+        for breakpoint in sorted(self.project.getBreakpoints()):
+            breakpointList.append(QTime(0, 0, 0).addMSecs(breakpoint).toString("HH:mm:ss.zzz"))
+        self.breakpointListModel.setStringList(breakpointList)
+
+    def updateProjectBreakpoint(self, index):
+        oldPosition = self.project.getSortedBreakpoints()[index.row()]
+        newPosition = parseTime(self.breakpointListModel.data(index, Qt.DisplayRole))
+        self.project.replaceBreakpoint(oldPosition, newPosition)

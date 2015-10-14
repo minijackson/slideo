@@ -5,7 +5,7 @@ from PyQt5.QtWidgets import QWidget, QDialog, QTimeEdit, QPushButton, QFormLayou
 from PyQt5.QtCore import QTime
 
 class TimeSelectDialog(QDialog):
-    def __init__(self, parent, videoManager):
+    def __init__(self, parent, videoManager, windowTitle, timeSelectorLabel):
         super().__init__(parent)
 
         self.videoManager = videoManager
@@ -18,7 +18,7 @@ class TimeSelectDialog(QDialog):
         formLayout = QFormLayout()
         self.timeEditor = QTimeEdit(qPosition)
         self.timeEditor.setDisplayFormat("HH:mm:ss.zzz")
-        formLayout.addRow("Time to jump to:", self.timeEditor)
+        formLayout.addRow(timeSelectorLabel, self.timeEditor)
 
         formWidget = QWidget()
         formWidget.setLayout(formLayout)
@@ -26,11 +26,13 @@ class TimeSelectDialog(QDialog):
         buttonsLayout = QHBoxLayout()
 
         buttonsLayout.addStretch()
-        cancelButton = QPushButton("Cancel")
-        buttonsLayout.addWidget(cancelButton)
-        okButton = QPushButton("OK")
-        okButton.setDefault(True)
-        buttonsLayout.addWidget(okButton)
+
+        self.cancelButton = QPushButton("Cancel")
+        buttonsLayout.addWidget(self.cancelButton)
+
+        self.okButton = QPushButton("OK")
+        self.okButton.setDefault(True)
+        buttonsLayout.addWidget(self.okButton)
 
         buttonsWidget = QWidget()
         buttonsWidget.setLayout(buttonsLayout)
@@ -39,9 +41,14 @@ class TimeSelectDialog(QDialog):
         mainLayout.addWidget(buttonsWidget)
 
         self.setLayout(mainLayout)
+        self.setWindowTitle(windowTitle)
 
-        cancelButton.clicked.connect(self.cancel)
-        okButton.clicked.connect(self.validate)
+class JumpToTimeDialog(TimeSelectDialog):
+    def __init__(self, parent, videoManager):
+        super().__init__(parent, videoManager, "Jump to time", "Time to jump to:")
+
+        self.cancelButton.clicked.connect(self.cancel)
+        self.okButton.clicked.connect(self.validate)
         self.timeEditor.editingFinished.connect(self.validate)
 
     def cancel(self):
@@ -49,4 +56,21 @@ class TimeSelectDialog(QDialog):
 
     def validate(self):
         self.videoManager.player.setPosition(-self.timeEditor.dateTime().time().msecsTo(QTime(0, 0, 0)))
+        self.done(0)
+
+class AddBreakPointDialog(TimeSelectDialog):
+    def __init__(self, parent, videoManager, projectManager):
+        super().__init__(parent, videoManager, "Add breakpoint", "Breakpoint position:")
+
+        self.projectManager = projectManager
+
+        self.cancelButton.clicked.connect(self.cancel)
+        self.okButton.clicked.connect(self.validate)
+        self.timeEditor.editingFinished.connect(self.validate)
+
+    def cancel(self):
+        self.done(1)
+
+    def validate(self):
+        self.projectManager.addBreakpoint(-self.timeEditor.dateTime().time().msecsTo(QTime(0, 0, 0)))
         self.done(0)
