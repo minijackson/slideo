@@ -5,6 +5,8 @@
 #include <QMediaPlayer>
 #include <QMediaPlaylist>
 
+#include <set>
+
 /*! \brief Class used to handle the video player
  *
  * It handle both the view and the model as the video management is pretty simple.
@@ -36,14 +38,6 @@ public slots:
 	 */
 	void activateVideo();
 
-	/*! \brief Pause if the current position is a breakpoint.
-	 *
-	 * Called if the position in the video has changed.
-	 *
-	 * \param position the position in the video.
-	 */
-	void pauseOnBreakpoint(qint64 const& position);
-
 	/*! \brief Update the seek forward/backward duration.
 	 *
 	 * \param videoDuration duration of the current video.
@@ -57,6 +51,14 @@ public slots:
 	/*! \brief Alternate between play and pause states.
 	 */
 	void playPause();
+
+	/*! \brief Play the video.
+	 */
+	void play();
+
+	/*! \brief Pause the video.
+	 */
+	void pause();
 
 	/*! \brief Set the position in the video.
 	 *
@@ -94,6 +96,22 @@ public slots:
 	 */
 	QMediaPlayer const& getPlayer() const;
 
+protected slots:
+	/*! \brief Pause if the current position is a breakpoint.
+	 *
+	 * Called if the position in the video has changed.
+	 *
+	 * \param position the position in the video.
+	 */
+	void pauseOnBreakpoint(qint64 const& position);
+
+	/*! \brief Reset the breakpoints iterators
+	 * (nextBreakpointIt and breakpointsEndIt).
+	 *
+	 * Called when the media changed.
+	 */
+	void resetBreakpointsIterators();
+
 protected:
 	/*! \brief keyPressEvent description
 	 *
@@ -111,5 +129,9 @@ protected:
 	bool presentationMode;
 	qint64 initialPosition;
 	qint64 seekDuration = 1;
+
+	std::set<qint64>::const_iterator nextBreakpointIt;
+	std::set<qint64>::const_iterator breakpointsEndIt;
+
 private:
 };

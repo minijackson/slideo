@@ -12,6 +12,8 @@
 
 // std::abs
 #include <cstdlib>
+// std::find_if
+#include <algorithm>
 #include <iostream>
 
 VideoPlayerManager::VideoPlayerManager(QWidget& parent, qint64 position, bool presentationMode)
@@ -23,13 +25,14 @@ VideoPlayerManager::VideoPlayerManager(QWidget& parent, qint64 position, bool pr
       , initialPosition(position) {
 	player.setVideoOutput(this);
 	player.setPlaylist(&playlist);
-	player.setNotifyInterval(1);
+	player.setNotifyInterval(9);
 
 	setFocusPolicy(Qt::ClickFocus);
 
 	connect(&player, SIGNAL(error(QMediaPlayer::Error)), this, SLOT(handleError()));
 	connect(&player, SIGNAL(durationChanged(qint64)), this, SLOT(updateSeekDuration(qint64)));
 	connect(&player, SIGNAL(positionChanged(qint64)), this, SLOT(pauseOnBreakpoint(qint64)));
+	connect(&playlist, SIGNAL(currentMediaChanged(QMediaContent const&)), this, SLOT(resetBreakpointsIterators()));
 }
 
 qint64 VideoPlayerManager::getPosition() const {
@@ -53,18 +56,6 @@ void VideoPlayerManager::activateVideo() {
 	player.setPosition(initialPosition);
 }
 
-void VideoPlayerManager::pauseOnBreakpoint(qint64 const& position) {
-	if(player.state() == QMediaPlayer::PlayingState && position != 0) {
-		MainWindow const& parent = static_cast<MainWindow&>(this->parent);
-		for(qint64 const& breakpoint : parent.getProject().getBreakpoints()) {
-			if(std::abs(position - breakpoint) <= 5) {
-				player.pause();
-				return;
-			}
-		}
-	}
-}
-
 void VideoPlayerManager::updateSeekDuration(qint64 videoDuration) {
 	seekDuration = (videoDuration > 10'000)? 1'000 : videoDuration / 10;
 }
@@ -81,24 +72,56 @@ void VideoPlayerManager::playPause() {
 	}
 }
 
+void VideoPlayerManager::play() {
+	player.play();
+}
+
+void VideoPlayerManager::pause() {
+	player.pause();
+}
+
 void VideoPlayerManager::setPosition(qint64 position) {
 	player.setPosition(position);
+	resetBreakpointsIterators();
 }
 
 void VideoPlayerManager::setPosition(int position) {
 	player.setPosition(position);
+	resetBreakpointsIterators();
 }
 
 void VideoPlayerManager::seekForward() {
 	player.setPosition(player.position() + seekDuration);
+	resetBreakpointsIterators();
 }
 
 void VideoPlayerManager::seekBackward() {
 	player.setPosition(player.position() - seekDuration);
+	resetBreakpointsIterators();
 }
 
 QMediaPlayer const& VideoPlayerManager::getPlayer() const {
 	return player;
+}
+
+void VideoPlayerManager::pauseOnBreakpoint(qint64 const& position) {
+	if(player.state() == QMediaPlayer::PlayingState && position) {
+		if(nextBreakpointIt == breakpointsEndIt) {
+			return;
+		} else if(std::abs(position - *nextBreakpointIt) <= 10) {
+			player.pause();
+			++nextBreakpointIt;
+			return;
+		}
+	}
+}
+
+void VideoPlayerManager::resetBreakpointsIterators() {
+	MainWindow& parent = static_cast<MainWindow&>(this->parent);
+	nextBreakpointIt = std::find_if(parent.getProject().getBreakpoints().cbegin(),
+	                                parent.getProject().getBreakpoints().cend(),
+	                                [this](qint64 value) { return value > player.position(); });
+	breakpointsEndIt = parent.getProject().getBreakpoints().cend();
 }
 
 void VideoPlayerManager::keyPressEvent(QKeyEvent* event) {

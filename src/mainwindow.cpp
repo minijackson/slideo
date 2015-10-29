@@ -89,6 +89,8 @@ void MainWindow::initCentralZone() {
 	playerSeekBar.setRange(0, 0);
 	playerSeekBar.setEnabled(false);
 	connect(&playerSeekBar, SIGNAL(sliderMoved(int)), &videoPlayer, SLOT(setPosition(int)));
+	connect(&playerSeekBar, SIGNAL(sliderPressed()), &videoPlayer, SLOT(pause()));
+	connect(&playerSeekBar, SIGNAL(sliderReleased()), &videoPlayer, SLOT(resetBreakpointsIterators()));
 	playerUILayout->addWidget(&playerSeekBar);
 
 	QWidget* playerTimeViewerWidget = new QWidget;
@@ -383,10 +385,12 @@ void MainWindow::showDockContextMenu(QPoint const& relativePos) {
 }
 
 void MainWindow::updatePlayPauseButtonIcon(QMediaPlayer::State state) {
-	if(state == QMediaPlayer::PlayingState) {
-		playerPlayPauseButton.setIcon(QIcon::fromTheme("media-playback-pause"));
-	} else {
-		playerPlayPauseButton.setIcon(QIcon::fromTheme("media-playback-start"));
+	if(videoPlayer.getPosition()) {
+		if(state == QMediaPlayer::PlayingState) {
+			playerPlayPauseButton.setIcon(QIcon::fromTheme("media-playback-pause"));
+		} else {
+			playerPlayPauseButton.setIcon(QIcon::fromTheme("media-playback-start"));
+		}
 	}
 }
 
