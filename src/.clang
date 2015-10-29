@@ -1,0 +1,8 @@
+-I.
+-isystem /usr/include/qt
+-isystem /usr/include/qt/QtCore
+-isystem /usr/include/qt/QtGui
+-isystem /usr/include/qt/QtWidgets
+-isystem /usr/include/qt/QtMultimedia
+-isystem /usr/include/qt/QtMultimediaWidgets
+-I/usr/lib/qt/mkspecs/linux-g++

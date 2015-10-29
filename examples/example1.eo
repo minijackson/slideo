@@ -1,2 +1,5 @@
-breakpoints: [0, 2000, 1000]
-video-files: [example1.avi]
+video-file: example1.avi
+breakpoints:
+  - 0
+  - 1000
+  - 2000
