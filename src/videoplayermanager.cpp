@@ -42,7 +42,7 @@ qint64 VideoPlayerManager::getPosition() const {
 void VideoPlayerManager::activateVideo() {
 	playlist.clear();
 
-	MainWindow& parent = static_cast<MainWindow&>(this->parent);
+	MainWindow& parent = dynamic_cast<MainWindow&>(this->parent);
 
 	std::string basePath = parent.getProject().getProjectFileLocation(),
 	            filePath = parent.getProject().getVideoFile();
@@ -117,7 +117,7 @@ void VideoPlayerManager::pauseOnBreakpoint(qint64 const& position) {
 }
 
 void VideoPlayerManager::resetBreakpointsIterators() {
-	MainWindow& parent = static_cast<MainWindow&>(this->parent);
+	MainWindow& parent = dynamic_cast<MainWindow&>(this->parent);
 	nextBreakpointIt = std::find_if(parent.getProject().getBreakpoints().cbegin(),
 	                                parent.getProject().getBreakpoints().cend(),
 	                                [this](qint64 value) { return value > player.position(); });
