@@ -14,7 +14,7 @@ TimeSelectDialog::TimeSelectDialog(QWidget& parent, QString windowTitle, QString
       , timeEditor()
       , cancelButton("Cancel")
       , validateButton("OK") {
-	MainWindow& mwParent = static_cast<MainWindow&>(parent);
+	MainWindow& mwParent = dynamic_cast<MainWindow&>(parent);
 
 	QTime currentPosition = QTime(0, 0, 0, 0).addMSecs(mwParent.getVideoPlayer().getPosition());
 
@@ -61,7 +61,7 @@ JumpToTimeDialog::JumpToTimeDialog(QWidget& parent)
       : TimeSelectDialog(parent, "Jump to time", "Time to jump to:") {}
 
 void JumpToTimeDialog::validate() {
-	MainWindow& mwParent = static_cast<MainWindow&>(parent);
+	MainWindow& mwParent = dynamic_cast<MainWindow&>(parent);
 	mwParent.setVideoPlayerPosition(QTime(0, 0, 0, 0).msecsTo(timeEditor.dateTime().time()));
 	done(0);
 }
@@ -70,7 +70,7 @@ AddBreakpointDialog::AddBreakpointDialog(QWidget& parent)
       : TimeSelectDialog(parent, "Add breakpoint", "Breakpoint position:") {}
 
 void AddBreakpointDialog::validate() {
-	MainWindow& mwParent = static_cast<MainWindow&>(parent);
+	MainWindow& mwParent = dynamic_cast<MainWindow&>(parent);
 	mwParent.addProjectBreakpoint(getTime());
 	done(0);
 }
