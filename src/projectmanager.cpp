@@ -46,7 +46,7 @@ ProjectManager::ProjectManager(ProjectManager const& other)
 	connect(this, SIGNAL(breakpointsChanged()), this, SLOT(changeProjectSavedStatus()));
 }
 
-ProjectManager::ProjectManager(ProjectManager&& other)
+ProjectManager::ProjectManager(ProjectManager&& other) noexcept
       : QObject()
       , projectFile(std::move(other.getProjectFile()))
       , isSaved(std::move(other.isItSaved()))
@@ -55,7 +55,7 @@ ProjectManager::ProjectManager(ProjectManager&& other)
 	connect(this, SIGNAL(breakpointsChanged()), this, SLOT(changeProjectSavedStatus()));
 }
 
-ProjectManager& ProjectManager::operator=(ProjectManager const& other) {
+ProjectManager& ProjectManager::operator=(ProjectManager const& other) noexcept {
 	if(&other != this) {
 		projectFile = std::string(other.getProjectFile());
 		isSaved = other.isItSaved();
@@ -66,7 +66,7 @@ ProjectManager& ProjectManager::operator=(ProjectManager const& other) {
 	return *this;
 }
 
-ProjectManager& ProjectManager::operator=(ProjectManager&& other) {
+ProjectManager& ProjectManager::operator=(ProjectManager&& other) noexcept {
 	if(&other != this) {
 		projectFile = std::move(other.getProjectFile());
 		isSaved = std::move(other.isItSaved());

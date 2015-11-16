@@ -25,7 +25,8 @@ public:
 	 * \param presentationMode true if the VideoPlayerManager must be started in
 	 *        a presentation mode.
 	 */
-	VideoPlayerManager(QWidget& parent, qint64 position = 0, bool presentationMode = false);
+	explicit VideoPlayerManager(QWidget& parent, qint64 position = 0,
+	                            bool presentationMode = false);
 
 	/*! \brief Return the current position in the video
 	 */
@@ -119,7 +120,7 @@ protected:
 	 *
 	 * \param event argument description
 	 */
-	virtual void keyPressEvent(QKeyEvent* event);
+	virtual void keyPressEvent(QKeyEvent* event) override;
 
 	QWidget& parent;
 

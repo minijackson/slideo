@@ -15,7 +15,7 @@ public:
 	 *
 	 * \param text the text of the label.
 	 */
-	DoubleClickableLabel(QString const& text);
+	explicit DoubleClickableLabel(QString const& text);
 
 signals:
 	/*! \brief Signal emitted when the user double-clicked on the current label.
@@ -24,6 +24,6 @@ signals:
 protected:
 	/*! \brief Reimplementation to be aware of mouse double-click events.
 	 */
-	virtual void mouseDoubleClickEvent(QMouseEvent*);
+	virtual void mouseDoubleClickEvent(QMouseEvent*) override;
 private:
 };

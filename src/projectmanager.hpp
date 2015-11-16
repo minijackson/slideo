@@ -22,19 +22,19 @@ public:
 
 	/*! \brief ProjectManager copy constructor.
 	 */
-	ProjectManager(ProjectManager const& other);
+	explicit ProjectManager(ProjectManager const& other);
 
 	/*! \brief ProjectManager move constructor.
 	 */
-	ProjectManager(ProjectManager&& other);
+	ProjectManager(ProjectManager&& other) noexcept;
 
 	/*! \brief ProjectManager copy assignment operator.
 	 */
-	ProjectManager& operator=(ProjectManager const& other);
+	ProjectManager& operator=(ProjectManager const& other) noexcept;
 
 	/*! \brief ProjectManager move assignment operator.
 	 */
-	ProjectManager& operator=(ProjectManager&& other);
+	ProjectManager& operator=(ProjectManager&& other) noexcept;
 
 	/*! \brief ProjectManager constructor.
 	 *
@@ -42,7 +42,7 @@ public:
 	 *
 	 * \param projectFile the project file path
 	 */
-	ProjectManager(std::string projectFile);
+	explicit ProjectManager(std::string projectFile);
 
 	/*! \brief projectFile attribute getter.
 	 */
