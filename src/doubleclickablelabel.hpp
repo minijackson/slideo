@@ -3,8 +3,6 @@
 #include <QLabel>
 
 /*! \brief A QLabel that you can double-click.
- *
- * Detailed description
  */
 class DoubleClickableLabel : public QLabel {
 

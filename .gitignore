@@ -1,9 +1,13 @@
 # Compiled program
 slideo
 
+# Backup files
+*.bak
+
+tags
 .gdb_history
 
-# Created by https://www.gitignore.io/api/vim,c++
+# Created by https://www.gitignore.io/api/vim,c++,qt
 
 ### Vim ###
 [._]*.s[a-w][a-z]
@@ -12,7 +16,6 @@ slideo
 Session.vim
 .netrwhist
 *~
-
 
 ### C++ ###
 # Compiled Object files
@@ -79,4 +82,3 @@ Makefile*
 #QtCtreator Qml
 *.qmlproject.user
 *.qmlproject.user.*
-

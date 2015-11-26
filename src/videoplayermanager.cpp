@@ -33,6 +33,13 @@ VideoPlayerManager::VideoPlayerManager(QWidget& parent, qint64 position, bool pr
 	connect(&player, SIGNAL(durationChanged(qint64)), this, SLOT(updateSeekDuration(qint64)));
 	connect(&player, SIGNAL(positionChanged(qint64)), this, SLOT(pauseOnBreakpoint(qint64)));
 	connect(&playlist, SIGNAL(currentMediaChanged(QMediaContent const&)), this, SLOT(resetBreakpointsIterators()));
+
+	if(presentationMode) {
+		this->setWindowFlags(Qt::Window);
+		this->setWindowState(Qt::WindowFullScreen);
+		parent.hide();
+		this->show();
+	}
 }
 
 qint64 VideoPlayerManager::getPosition() const {
@@ -128,6 +135,8 @@ void VideoPlayerManager::keyPressEvent(QKeyEvent* event) {
 	if(presentationMode) {
 		if(event->key() == Qt::Key_Space) {
 			playPause();
+		} else if(event->key() == Qt::Key_Escape) {
+			this->close();
 		} else {
 			QVideoWidget::keyPressEvent(event);
 		}
@@ -147,4 +156,11 @@ void VideoPlayerManager::keyPressEvent(QKeyEvent* event) {
 				break;
 		}
 	}
+}
+
+void VideoPlayerManager::closeEvent(QCloseEvent* event) {
+	if(presentationMode) {
+		this->parentWidget()->show();
+	}
+	QVideoWidget::closeEvent(event);
 }

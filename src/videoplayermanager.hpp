@@ -114,13 +114,25 @@ protected slots:
 	void resetBreakpointsIterators();
 
 protected:
-	/*! \brief keyPressEvent description
+	/*! \brief Function called when the user presses a key.
 	 *
-	 * Detailed description
+	 * These key events are processed:
+	 *   - Space : Play/Pause
+	 *   - Escape (only in presentation mode) : Leave presentation mode
+	 *   - Up (not in presentation mode) : seek forward
+	 *   - Down (not in presentation mode) : seek backward
 	 *
-	 * \param event argument description
+	 * \param event the event containing the pressed key.
 	 */
 	virtual void keyPressEvent(QKeyEvent* event) override;
+
+	/*! \brief Function called when the user closes the window
+	 *
+	 * This function is useless unless the player is in presentation mode.
+	 *
+	 * \param event the close event.
+	 */
+	virtual void closeEvent(QCloseEvent* event) override;
 
 	QWidget& parent;
 

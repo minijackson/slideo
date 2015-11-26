@@ -23,7 +23,8 @@ MainWindow::MainWindow()
       , videoPlayer(*this)
       , addBreakpointAction(QIcon::fromTheme("list-add"), "&Add breakpoint", this)
       , addBreakpointHereAction("Add breakpoint at &current position", this)
-      , removeBreakpointAction(QIcon::fromTheme("list-remove"), "&Remove selected breakpoint(s)", this)
+      , removeBreakpointAction(QIcon::fromTheme("list-remove"), "&Remove selected breakpoint(s)",
+                               this)
       , playerPlayPauseButton(QIcon::fromTheme("media-playback-start"), "")
       , playerSeekBar(Qt::Horizontal)
       , playerPositionViewer("00:00:00")
@@ -276,6 +277,8 @@ void MainWindow::initActionWidgets() {
 
 	viewMenu.addAction(startSlideshowAction);
 
+	connect(startSlideshowAction, SIGNAL(triggered()), this, SLOT(startSlideshow()));
+
 	QAction* startFromHereAction = new QAction("&Start slideshow from here", this);
 	startFromHereAction->setShortcut(QKeySequence("Shift+F5"));
 	startFromHereAction->setEnabled(false);
@@ -347,6 +350,12 @@ void MainWindow::saveProject() {
 	project.saveProject();
 	statusBar()->showMessage("Project saved.", 5'000);
 	updateWindowTitle();
+}
+
+void MainWindow::startSlideshow() {
+	VideoPlayerManager* fullScreenPlayer =
+	  new VideoPlayerManager(*this, /* position = */ 0, /* presentationMode = */ true);
+	fullScreenPlayer->activateVideo();
 }
 
 void MainWindow::projectConnections() {

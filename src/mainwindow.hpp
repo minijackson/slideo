@@ -75,6 +75,10 @@ public slots:
 	 */
 	void saveProject();
 
+	/*! \brief Start the slideshow in fullscreen mode.
+	 */
+	void startSlideshow();
+
 	/*! \brief Connect project-dependant signals/slots.
 	 *
 	 * This includes the update of the dock when the project's breakpoints are

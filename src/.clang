@@ -1,8 +1,9 @@
 -I.
--isystem /usr/include/qt
--isystem /usr/include/qt/QtCore
--isystem /usr/include/qt/QtGui
--isystem /usr/include/qt/QtWidgets
--isystem /usr/include/qt/QtMultimedia
--isystem /usr/include/qt/QtMultimediaWidgets
+-isystem /usr/include/qt5
+-isystem /usr/include/qt5/QtCore
+-isystem /usr/include/qt5/QtGui
+-isystem /usr/include/qt5/QtWidgets
+-isystem /usr/include/qt5/QtMultimedia
+-isystem /usr/include/qt5/QtMultimediaWidgets
 -I/usr/lib/qt/mkspecs/linux-g++
+-fPIC
