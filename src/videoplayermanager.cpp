@@ -61,6 +61,9 @@ void VideoPlayerManager::activateVideo() {
 
 	playlist.setCurrentIndex(0);
 	player.setPosition(initialPosition);
+	// Hack to show the first frame
+	player.play();
+	player.pause();
 }
 
 void VideoPlayerManager::updateSeekDuration(qint64 videoDuration) {

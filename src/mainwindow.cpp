@@ -284,9 +284,12 @@ void MainWindow::initActionWidgets() {
 	startFromHereAction->setEnabled(false);
 	viewMenu.addAction(startFromHereAction);
 
+	connect(startFromHereAction, SIGNAL(triggered()), this, SLOT(startSlideshowFromHere()));
+
 	viewMenu.addSeparator();
 
-	QAction* jumpToTimeAction = new QAction(QIcon::fromTheme("go-jump"), "&Jump to specific time", this);
+	QAction* jumpToTimeAction =
+	  new QAction(QIcon::fromTheme("go-jump"), "&Jump to specific time", this);
 	jumpToTimeAction->setShortcut(QKeySequence("Ctrl+T"));
 	jumpToTimeAction->setEnabled(false);
 	connect(jumpToTimeAction, SIGNAL(triggered()), this, SLOT(showJumpToTimeDialog()));
@@ -355,6 +358,12 @@ void MainWindow::saveProject() {
 void MainWindow::startSlideshow() {
 	VideoPlayerManager* fullScreenPlayer =
 	  new VideoPlayerManager(*this, /* position = */ 0, /* presentationMode = */ true);
+	fullScreenPlayer->activateVideo();
+}
+
+void MainWindow::startSlideshowFromHere() {
+	VideoPlayerManager* fullScreenPlayer =
+	  new VideoPlayerManager(*this, videoPlayer.getPosition(), /* presentationMode = */ true);
 	fullScreenPlayer->activateVideo();
 }
 
