@@ -71,7 +71,6 @@ ProjectManager& ProjectManager::operator=(ProjectManager const& other) noexcept 
 		saved = other.isSaved();
 		project = other.getProjectNode();
 		breakpoints = other.getBreakpoints();
-		saved = false;
 		emit breakpointsChanged();
 	}
 	return *this;
@@ -83,7 +82,6 @@ ProjectManager& ProjectManager::operator=(ProjectManager&& other) noexcept {
 		saved = std::move(other.isSaved());
 		project = std::move(other.getProjectNode());
 		breakpoints = std::move(other.getBreakpoints());
-		saved = false;
 		emit breakpointsChanged();
 	}
 	return *this;
