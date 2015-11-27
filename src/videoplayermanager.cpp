@@ -14,7 +14,6 @@
 #include <cstdlib>
 // std::find_if
 #include <algorithm>
-#include <iostream>
 
 VideoPlayerManager::VideoPlayerManager(QWidget& parent, qint64 position, bool presentationMode)
       : QVideoWidget(&parent)

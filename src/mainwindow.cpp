@@ -5,6 +5,7 @@
 #include <QApplication>
 
 #include <QFileDialog>
+#include <QMessageBox>
 
 #include <QVBoxLayout>
 #include <QHBoxLayout>
@@ -167,6 +168,7 @@ void MainWindow::initActionWidgets() {
 	QAction* newPresentationAction =
 	  new QAction(QIcon::fromTheme("document-new"), "&New presentation", this);
 	newPresentationAction->setShortcut(QKeySequence("Ctrl+N"));
+	connect(newPresentationAction, SIGNAL(triggered()), this, SLOT(newProject()));
 	fileMenu.addAction(newPresentationAction);
 
 	QAction* openPresentationAction =
@@ -340,8 +342,42 @@ void MainWindow::setVideoPlayerPosition(qint64 position) {
 	videoPlayer.setPosition(position);
 }
 
+void MainWindow::newProject() {
+	QString projectFile =
+	  QFileDialog::getSaveFileName(this, "Save project as...", QDir::homePath(), "Slideo project file (*.eo)");
+
+	QDir projectDir =  QFileInfo(projectFile).absoluteDir();
+
+	if(projectFile != "") {
+		if(!projectFile.endsWith(".eo")) {
+			projectFile += ".eo";
+		}
+
+		QString videoFile =
+		  QFileDialog::getOpenFileName(this, "Select the video file", projectDir.path());
+
+		if(videoFile != "") {
+			QString videoFileRelativePath = projectDir.relativeFilePath(videoFile);
+
+			if(videoFileRelativePath.startsWith("..")) {
+				QMessageBox::warning(this, "Video file not relative to the project file",
+				                     "The video file is not in a sub-directory of the project "
+				                     "file's directory.\nIt is likely that if you move the "
+				                     "project's directory, you will need to re-specify the video "
+				                     "file's location.");
+			}
+
+			project =
+			  ProjectManager(projectFile.toStdString(), videoFileRelativePath.toStdString());
+			emit projectActivated(true);
+			updateDockBreakpoints();
+		}
+	}
+}
+
 void MainWindow::openProject() {
-	QString projectFile = QFileDialog::getOpenFileName(this, "Open project", "",  "Slideo project file (*.eo)");
+	QString projectFile = QFileDialog::getOpenFileName(this, "Open project", QDir::homePath(),
+	                                                   "Slideo project file (*.eo)");
 	if(projectFile != "") {
 		project = ProjectManager(projectFile.toStdString());
 		emit projectActivated(true);
@@ -373,7 +409,7 @@ void MainWindow::projectConnections() {
 }
 
 void MainWindow::updateWindowTitle() {
-	setWindowTitle("Slideo");
+	setWindowTitle(project.isSaved() ? "Slideo" : "*Slideo");
 }
 
 void MainWindow::updateProjectBreakpoints(QModelIndex const& index) {

@@ -63,6 +63,12 @@ public:
 
 public slots:
 
+	/*! \brief Create a new project.
+	 *
+	 * This will open a dialog for selecting the project location and the video location.
+	 */
+	void newProject();
+
 	/*! \brief Open a project.
 	 *
 	 * This will open a dialog for selecting a project file and load it.

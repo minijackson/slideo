@@ -40,17 +40,26 @@ public:
 	 *
 	 * Loads the project file into Yaml node.
 	 *
-	 * \param projectFile the project file path
+	 * \param projectFile the project file path.
 	 */
 	explicit ProjectManager(std::string projectFile);
+
+	/*! \brief ProjectManager constructor specifying the video file path.
+	 *
+	 * Creates the project file with a default template.
+	 *
+	 * \param projectFile the project file path.
+	 * \param videoFile the path of the video file.
+	 */
+	ProjectManager(std::string projectFile, std::string videoFile);
 
 	/*! \brief projectFile attribute getter.
 	 */
 	std::string const& getProjectFile() const;
 
-	/*! \brief isSaved attribute getter.
+	/*! \brief saved attribute getter.
 	 */
-	bool const& isItSaved() const;
+	bool const& isSaved() const;
 
 	/*! \brief project attribute getter.
 	 */
@@ -98,7 +107,7 @@ public:
 	 *
 	 * \param breakpoint the breakpoint to add.
 	 */
-	void addBreakpoint(qint64 breakpoint);
+	void addBreakpoint(qint64 const breakpoint);
 
 	/*! \brief Remove a breakpoint to the project;
 	 *
@@ -106,7 +115,7 @@ public:
 	 *
 	 * \param breakpoint the breakpoint to be removed.
 	 */
-	void removeBreakpoint(qint64 breakpoint);
+	void removeBreakpoint(qint64 const breakpoint);
 
 	/*! \brief Replace a breakpoint by an other.
 	 *
@@ -116,13 +125,9 @@ public:
 	 * \param oldPosition the position of the breakpoint to be replaced.
 	 * \param newPosition the new position of the breakpoint.
 	 */
-	void replaceBreakpoint(qint64 oldPosition, qint64 newPosition);
+	void replaceBreakpoint(qint64 const oldPosition, qint64 const newPosition);
 
 public slots:
-	/*! \brief Sets the "saved" status to false.
-	 */
-	void changeProjectSavedStatus();
-
 	/*! \brief Saves the project to the project file.
 	 */
 	void saveProject();
@@ -134,7 +139,7 @@ signals:
 
 protected:
 	std::string projectFile;
-	bool isSaved = false;
+	bool saved = true;
 	YAML::Node project;
 	std::set<qint64> breakpoints;
 private:

@@ -10,8 +10,12 @@ namespace YAML {
 	struct convert<std::set<qint64>> {
 		static Node encode(const std::set<qint64>& rhs) {
 			Node node;
-			for(qint64 i : rhs) {
-				node.push_back(i);
+			if(rhs.empty()) {
+				node = YAML::Load("[]");
+			} else {
+				for(qint64 i : rhs) {
+					node.push_back(i);
+				}
 			}
 			return node;
 		}
@@ -33,34 +37,41 @@ ProjectManager::ProjectManager(std::string projectFile)
       : QObject()
       , projectFile(projectFile)
       , project(YAML::LoadFile(projectFile))
-      , breakpoints(project["breakpoints"].as<std::set<qint64>>()) {
-	connect(this, SIGNAL(breakpointsChanged()), this, SLOT(changeProjectSavedStatus()));
+      , breakpoints(project["breakpoints"].as<std::set<qint64>>()) {}
+
+ProjectManager::ProjectManager(std::string projectFile, std::string videoFile)
+      : QObject()
+      , projectFile(projectFile)
+      , project()
+      , breakpoints() {
+
+	project["breakpoints"] = YAML::Load("[]");
+	project["video-file"] = videoFile;
+
+	saveProject();
 }
 
 ProjectManager::ProjectManager(ProjectManager const& other)
       : QObject()
       , projectFile(other.getProjectFile())
-      , isSaved(other.isItSaved())
+      , saved(other.isSaved())
       , project(other.getProjectNode())
-      , breakpoints(other.getBreakpoints()) {
-	connect(this, SIGNAL(breakpointsChanged()), this, SLOT(changeProjectSavedStatus()));
-}
+      , breakpoints(other.getBreakpoints()) {}
 
 ProjectManager::ProjectManager(ProjectManager&& other) noexcept
       : QObject()
       , projectFile(std::move(other.getProjectFile()))
-      , isSaved(std::move(other.isItSaved()))
+      , saved(std::move(other.isSaved()))
       , project(std::move(other.getProjectNode()))
-      , breakpoints(std::move(other.getBreakpoints())) {
-	connect(this, SIGNAL(breakpointsChanged()), this, SLOT(changeProjectSavedStatus()));
-}
+      , breakpoints(std::move(other.getBreakpoints())) {}
 
 ProjectManager& ProjectManager::operator=(ProjectManager const& other) noexcept {
 	if(&other != this) {
 		projectFile = std::string(other.getProjectFile());
-		isSaved = other.isItSaved();
+		saved = other.isSaved();
 		project = other.getProjectNode();
 		breakpoints = other.getBreakpoints();
+		saved = false;
 		emit breakpointsChanged();
 	}
 	return *this;
@@ -69,9 +80,10 @@ ProjectManager& ProjectManager::operator=(ProjectManager const& other) noexcept 
 ProjectManager& ProjectManager::operator=(ProjectManager&& other) noexcept {
 	if(&other != this) {
 		projectFile = std::move(other.getProjectFile());
-		isSaved = std::move(other.isItSaved());
+		saved = std::move(other.isSaved());
 		project = std::move(other.getProjectNode());
 		breakpoints = std::move(other.getBreakpoints());
+		saved = false;
 		emit breakpointsChanged();
 	}
 	return *this;
@@ -81,8 +93,8 @@ std::string const& ProjectManager::getProjectFile() const {
 	return projectFile;
 }
 
-bool const& ProjectManager::isItSaved() const {
-	return isSaved;
+bool const& ProjectManager::isSaved() const {
+	return saved;
 }
 
 YAML::Node const& ProjectManager::getProjectNode() const {
@@ -105,33 +117,34 @@ std::set<qint64> const& ProjectManager::getBreakpoints() const {
 	return breakpoints;
 }
 
-void ProjectManager::changeProjectSavedStatus() {
-	isSaved = false;
-}
-
 void ProjectManager::setBreakpoints(std::set<qint64> const& breakpoints) {
 	this->breakpoints = breakpoints;
+	saved = false;
 	emit breakpointsChanged();
 }
 
 void ProjectManager::setBreakpoints(std::set<qint64>&& breakpoints) {
 	this->breakpoints = breakpoints;
+	saved = false;
 	emit breakpointsChanged();
 }
 
-void ProjectManager::addBreakpoint(qint64 breakpoint) {
+void ProjectManager::addBreakpoint(qint64 const breakpoint) {
 	breakpoints.insert(breakpoint);
+	saved = false;
 	emit breakpointsChanged();
 }
 
-void ProjectManager::removeBreakpoint(qint64 breakpoint) {
+void ProjectManager::removeBreakpoint(qint64 const breakpoint) {
 	breakpoints.erase(breakpoint);
+	saved = false;
 	emit breakpointsChanged();
 }
 
-void ProjectManager::replaceBreakpoint(qint64 oldPosition, qint64 newPosition) {
+void ProjectManager::replaceBreakpoint(qint64 const oldPosition, qint64 const newPosition) {
 	removeBreakpoint(oldPosition);
 	addBreakpoint(newPosition);
+	saved = false;
 	emit breakpointsChanged();
 }
 
@@ -140,5 +153,5 @@ void ProjectManager::saveProject() {
 
 	std::ofstream fileStream(projectFile);
 	fileStream << project << std::endl;
-	isSaved = true;
+	saved = true;
 }
