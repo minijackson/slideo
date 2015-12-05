@@ -22,7 +22,7 @@ public:
 
 	/*! \brief ProjectManager copy constructor.
 	 */
-	explicit ProjectManager(ProjectManager const& other);
+	ProjectManager(ProjectManager const& other);
 
 	/*! \brief ProjectManager move constructor.
 	 */

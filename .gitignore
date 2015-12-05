@@ -7,6 +7,9 @@ slideo
 tags
 .gdb_history
 
+# Documentation
+doc/*
+
 # Created by https://www.gitignore.io/api/vim,c++,qt
 
 ### Vim ###

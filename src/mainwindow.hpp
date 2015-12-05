@@ -2,6 +2,7 @@
 
 #include "projectmanager.hpp"
 #include "videoplayermanager.hpp"
+#include "history.hpp"
 #include "doubleclickablelabel.hpp"
 
 #include <QMainWindow>
@@ -118,6 +119,24 @@ public slots:
 	 */
 	void updateDockBreakpoints();
 
+	/*! \brief Save the current state in the history.
+	 *
+	 * Will be called when the breakpoints or the video file path changed.
+	 */
+	void saveState();
+
+	/*! \brief Undo the last action.
+	 *
+	 * Restore the previous state if existing.
+	 */
+	void undo();
+
+	/*! \brief Redo the last action.
+	 *
+	 * Restore the next state if existing.
+	 */
+	void redo();
+
 	/*! \brief Show the dock's contextual menu.
 	 *
 	 * Called when the user right-clicked on the dock.
@@ -199,7 +218,10 @@ signals:
 protected:
 	ProjectManager project;
 	VideoPlayerManager videoPlayer;
+	History history;
 
+	QAction undoAction;
+	QAction redoAction;
 	QAction addBreakpointAction;
 	QAction addBreakpointHereAction;
 	QAction removeBreakpointAction;

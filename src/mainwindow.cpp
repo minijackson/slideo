@@ -22,6 +22,8 @@
 MainWindow::MainWindow()
       : QMainWindow(0)
       , videoPlayer(*this)
+      , undoAction(QIcon::fromTheme("edit-undo"), "&Undo", this)
+      , redoAction(QIcon::fromTheme("edit-redo"), "&Redo", this)
       , addBreakpointAction(QIcon::fromTheme("list-add"), "&Add breakpoint", this)
       , addBreakpointHereAction("Add breakpoint at &current position", this)
       , removeBreakpointAction(QIcon::fromTheme("list-remove"), "&Remove selected breakpoint(s)",
@@ -246,6 +248,18 @@ void MainWindow::initActionWidgets() {
 
 	QMenu& editMenu = *menuBar()->addMenu("&Edit");
 
+	undoAction.setShortcut(QKeySequence("Ctrl+Z"));
+	undoAction.setEnabled(false);
+	connect(&undoAction, SIGNAL(triggered()), this, SLOT(undo()));
+	editMenu.addAction(&undoAction);
+
+	redoAction.setShortcut(QKeySequence("Ctrl+Shift+Z"));
+	redoAction.setEnabled(false);
+	connect(&redoAction, SIGNAL(triggered()), this, SLOT(redo()));
+	editMenu.addAction(&redoAction);
+
+	editMenu.addSeparator();
+
 	addBreakpointAction.setShortcut(QKeySequence("Ctrl+B"));
 	addBreakpointAction.setEnabled(false);
 	connect(&addBreakpointAction, SIGNAL(triggered()), this, SLOT(showAddBreakpointDialog()));
@@ -311,6 +325,8 @@ void MainWindow::initActionWidgets() {
 	connect(this, SIGNAL(projectActivated(bool)), saveProjectAction, SLOT(setEnabled(bool)));
 	connect(this, SIGNAL(projectActivated(bool)), saveProjectAsAction, SLOT(setEnabled(bool)));
 
+	connect(this, SIGNAL(projectActivated(bool)), &undoAction, SLOT(setEnabled(bool)));
+	connect(this, SIGNAL(projectActivated(bool)), &redoAction, SLOT(setEnabled(bool)));
 	connect(this, SIGNAL(projectActivated(bool)), &addBreakpointAction, SLOT(setEnabled(bool)));
 	connect(this, SIGNAL(projectActivated(bool)), &addBreakpointHereAction, SLOT(setEnabled(bool)));
 	connect(this, SIGNAL(projectActivated(bool)), &removeBreakpointAction, SLOT(setEnabled(bool)));
@@ -369,6 +385,7 @@ void MainWindow::newProject() {
 
 			project =
 			  ProjectManager(projectFile.toStdString(), videoFileRelativePath.toStdString());
+			history = History(project);
 			emit projectActivated(true);
 			updateDockBreakpoints();
 		}
@@ -380,6 +397,7 @@ void MainWindow::openProject() {
 	                                                   "Slideo project file (*.eo)");
 	if(projectFile != "") {
 		project = ProjectManager(projectFile.toStdString());
+		history = History(project);
 		emit projectActivated(true);
 		updateDockBreakpoints();
 	}
@@ -406,6 +424,7 @@ void MainWindow::startSlideshowFromHere() {
 void MainWindow::projectConnections() {
 	connect(&project, SIGNAL(breakpointsChanged()), this, SLOT(updateDockBreakpoints()));
 	connect(&project, SIGNAL(breakpointsChanged()), this, SLOT(updateWindowTitle()));
+	connect(&project, SIGNAL(breakpointsChanged()), this, SLOT(saveState()));
 }
 
 void MainWindow::updateWindowTitle() {
@@ -427,6 +446,22 @@ void MainWindow::updateDockBreakpoints() {
 		breakpoints << QTime(0, 0, 0, 0).addMSecs(breakpoint).toString("HH:mm:ss.zzz");
 	}
 	breakpointListModel.setStringList(breakpoints);
+}
+
+void MainWindow::saveState() {
+	history.push_back(project);
+}
+
+void MainWindow::undo() {
+	project = history.goBack();
+	updateDockBreakpoints();
+	updateWindowTitle();
+}
+
+void MainWindow::redo() {
+	project = history.advance();
+	updateDockBreakpoints();
+	updateWindowTitle();
 }
 
 void MainWindow::showDockContextMenu(QPoint const& relativePos) {

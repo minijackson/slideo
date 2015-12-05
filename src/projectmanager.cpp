@@ -71,7 +71,6 @@ ProjectManager& ProjectManager::operator=(ProjectManager const& other) noexcept 
 		saved = other.isSaved();
 		project = other.getProjectNode();
 		breakpoints = other.getBreakpoints();
-		emit breakpointsChanged();
 	}
 	return *this;
 }
@@ -82,7 +81,6 @@ ProjectManager& ProjectManager::operator=(ProjectManager&& other) noexcept {
 		saved = std::move(other.isSaved());
 		project = std::move(other.getProjectNode());
 		breakpoints = std::move(other.getBreakpoints());
-		emit breakpointsChanged();
 	}
 	return *this;
 }
@@ -116,15 +114,19 @@ std::set<qint64> const& ProjectManager::getBreakpoints() const {
 }
 
 void ProjectManager::setBreakpoints(std::set<qint64> const& breakpoints) {
-	this->breakpoints = breakpoints;
-	saved = false;
-	emit breakpointsChanged();
+	if(this->breakpoints != breakpoints) {
+		this->breakpoints = breakpoints;
+		saved = false;
+		emit breakpointsChanged();
+	}
 }
 
 void ProjectManager::setBreakpoints(std::set<qint64>&& breakpoints) {
-	this->breakpoints = breakpoints;
-	saved = false;
-	emit breakpointsChanged();
+	if(this->breakpoints != breakpoints) {
+		this->breakpoints = breakpoints;
+		saved = false;
+		emit breakpointsChanged();
+	}
 }
 
 void ProjectManager::addBreakpoint(qint64 const breakpoint) {
@@ -140,10 +142,12 @@ void ProjectManager::removeBreakpoint(qint64 const breakpoint) {
 }
 
 void ProjectManager::replaceBreakpoint(qint64 const oldPosition, qint64 const newPosition) {
-	removeBreakpoint(oldPosition);
-	addBreakpoint(newPosition);
-	saved = false;
-	emit breakpointsChanged();
+	if(oldPosition != newPosition) {
+		removeBreakpoint(oldPosition);
+		addBreakpoint(newPosition);
+		saved = false;
+		emit breakpointsChanged();
+	}
 }
 
 void ProjectManager::saveProject() {
