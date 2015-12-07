@@ -30,7 +30,20 @@ public slots:
 	virtual void validate();
 
 protected:
+	/*! \brief Get a QTime as milliseconds.
+	 *
+	 * \param timeEditor the QTime to convert.
+	 * \return the milliseconds.
+	 */
 	inline qint64 getMSecs(QTimeEdit const& timeEditor) const;
+
+	/*! \brief Event filter to catch the press of Enter in the QTimeEdits
+	 *
+	 * \param obj the object from which the event originated.
+	 * \param event the event
+	 * \return true if Qt must stop processing the event.
+	 */
+	bool eventFilter(QObject* obj, QEvent* event) override;
 
 	QWidget& parent;
 

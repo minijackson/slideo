@@ -6,6 +6,11 @@
 #include <QHBoxLayout>
 #include <QFormLayout>
 
+#include <QEvent>
+#include <QKeyEvent>
+
+#include <QApplication>
+
 AddBreakpointRegularlyDialog::AddBreakpointRegularlyDialog(QWidget& parent)
       : QDialog(&parent)
       , parent(parent)
@@ -52,6 +57,8 @@ AddBreakpointRegularlyDialog::AddBreakpointRegularlyDialog(QWidget& parent)
 
 	connect(&cancelButton, SIGNAL(clicked()), this, SLOT(cancel()));
 	connect(&validateButton, SIGNAL(clicked()), this, SLOT(validate()));
+
+	qApp->installEventFilter(this);
 }
 
 void AddBreakpointRegularlyDialog::cancel() {
@@ -78,4 +85,16 @@ void AddBreakpointRegularlyDialog::validate() {
 
 inline qint64 AddBreakpointRegularlyDialog::getMSecs(QTimeEdit const& timeEditor) const {
 	return QTime(0, 0, 0, 0).msecsTo(timeEditor.dateTime().time());
+}
+
+bool AddBreakpointRegularlyDialog::eventFilter(QObject* obj, QEvent* event) {
+	if((obj == &fromTime || obj == &toTime || obj == &everyTime) &&
+	   event->type() == QEvent::KeyPress) {
+		QKeyEvent *keyEvent = dynamic_cast<QKeyEvent*>(event);
+		if(keyEvent->key() == Qt::Key_Enter || keyEvent->key() == Qt::Key_Return) {
+			validate();
+			return true;
+		}
+	}
+	return false;
 }

@@ -8,6 +8,11 @@
 
 #include <QTime>
 
+#include <QEvent>
+#include <QKeyEvent>
+
+#include <QApplication>
+
 TimeSelectDialog::TimeSelectDialog(QWidget& parent, QString windowTitle, QString timeSelectorLabel)
       : QDialog(&parent)
       , parent(parent)
@@ -44,9 +49,10 @@ TimeSelectDialog::TimeSelectDialog(QWidget& parent, QString windowTitle, QString
 	setLayout(mainLayout);
 	setWindowTitle(windowTitle);
 
-	connect(&timeEditor, SIGNAL(editingFinished()), this, SLOT(validate()));
 	connect(&cancelButton, SIGNAL(clicked()), this, SLOT(cancel()));
 	connect(&validateButton, SIGNAL(clicked()), this, SLOT(validate()));
+
+	qApp->installEventFilter(this);
 }
 
 void TimeSelectDialog::cancel() {
@@ -55,6 +61,17 @@ void TimeSelectDialog::cancel() {
 
 qint64 TimeSelectDialog::getTime() const {
 	return QTime(0, 0, 0, 0).msecsTo(timeEditor.dateTime().time());
+}
+
+bool TimeSelectDialog::eventFilter(QObject* obj, QEvent* event) {
+	if(obj == &timeEditor && event->type() == QEvent::KeyPress) {
+		QKeyEvent *keyEvent = dynamic_cast<QKeyEvent*>(event);
+		if(keyEvent->key() == Qt::Key_Enter || keyEvent->key() == Qt::Key_Return) {
+			validate();
+			return true;
+		}
+	}
+	return false;
 }
 
 JumpToTimeDialog::JumpToTimeDialog(QWidget& parent)
