@@ -49,7 +49,12 @@ public:
 	 * \param state the state to add.
 	 */
 	void push_back(ProjectManager const& state);
+
+	/*! \brief Set the current state as "saved".
+	 */
+	void setSaved();
 protected:
 	std::list<ProjectManager> states;
 	std::list<ProjectManager>::iterator currentState;
+	std::list<ProjectManager>::iterator savedState;
 };

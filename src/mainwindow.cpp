@@ -419,6 +419,7 @@ void MainWindow::openProject() {
 
 void MainWindow::saveProject() {
 	project.saveProject();
+	history.setSaved();
 	statusBar()->showMessage("Project saved.", 5'000);
 	updateWindowTitle();
 }

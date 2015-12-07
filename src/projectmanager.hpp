@@ -159,5 +159,7 @@ protected:
 	bool saved = true;
 	YAML::Node project;
 	std::set<qint64> breakpoints;
-private:
+
+	// Needed to modify the "saved" state
+	friend class History;
 };
