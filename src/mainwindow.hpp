@@ -228,6 +228,8 @@ signals:
 	void projectActivated(bool);
 
 protected:
+	void closeEvent(QCloseEvent* event) override;
+
 	ProjectManager project;
 	VideoPlayerManager videoPlayer;
 	History history;

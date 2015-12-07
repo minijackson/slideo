@@ -18,6 +18,8 @@
 
 #include <QTime>
 
+#include <QCloseEvent>
+
 #include <iterator>
 
 MainWindow::MainWindow()
@@ -552,6 +554,35 @@ void MainWindow::alternateFullscreen(bool value) {
 		showFullScreen();
 	} else {
 		showNormal();
+	}
+}
+
+void MainWindow::closeEvent(QCloseEvent* event) {
+	if(project.isSaved()) {
+		event->accept();
+	} else {
+		QMessageBox warningMsgBox(this);
+		warningMsgBox.setText("Unsaved modifications");
+		warningMsgBox.setInformativeText(
+				"You have unsaved modifications in this project. Do you want to save them before closing?");
+		warningMsgBox.setStandardButtons(QMessageBox::Save | QMessageBox::Discard |
+				QMessageBox::Cancel);
+		warningMsgBox.setDefaultButton(QMessageBox::Save);
+		int ret = warningMsgBox.exec();
+
+		switch(ret) {
+			case QMessageBox::Save:
+				project.saveProject();
+				event->accept();
+				break;
+			case QMessageBox::Discard:
+				event->accept();
+				break;
+				// QMessageBox::Cancel
+			default:
+				event->ignore();
+				break;
+		}
 	}
 }
 
