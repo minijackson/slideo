@@ -28,9 +28,19 @@ public:
 	explicit VideoPlayerManager(QWidget& parent, qint64 position = 0,
 	                            bool presentationMode = false);
 
-	/*! \brief Return the current position in the video
+	/*! \brief Return the current position in the video.
 	 */
 	qint64 getPosition() const;
+
+	/*! \brief Return the length of the current video.
+	 */
+	qint64 getDuration() const;
+
+	/*! \brief Returns the player (the model part).
+	 *
+	 * \return the player.
+	 */
+	QMediaPlayer const& getPlayer() const;
 
 public slots:
 	/*! \brief Activate the video.
@@ -90,12 +100,6 @@ public slots:
 	 * Uses the seekDuration property.
 	 */
 	void seekBackward();
-
-	/*! \brief Returns the player (the model part).
-	 *
-	 * \return the player.
-	 */
-	QMediaPlayer const& getPlayer() const;
 
 protected slots:
 	/*! \brief Pause if the current position is a breakpoint.

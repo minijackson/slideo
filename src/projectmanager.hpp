@@ -3,6 +3,7 @@
 #include <QObject>
 
 #include <set>
+#include <vector>
 #include <yaml-cpp/yaml.h>
 
 /*! \brief Class used to handle a project
@@ -109,13 +110,29 @@ public:
 	 */
 	void addBreakpoint(qint64 const breakpoint);
 
-	/*! \brief Remove a breakpoint to the project;
+	/*! \brief Add several breakpoints to the project.
+	 *
+	 * The breakpoints must be in msecs.
+	 *
+	 * \param breakpoints the breakpoints to add.
+	 */
+	void addBreakpoints(std::vector<qint64> const& breakpoints);
+
+	/*! \brief Remove a breakpoint from the project.
 	 *
 	 * The breakpoint must be in msecs.
 	 *
 	 * \param breakpoint the breakpoint to be removed.
 	 */
 	void removeBreakpoint(qint64 const breakpoint);
+
+	/*! \brief Remove several breakpoint from the project.
+	 *
+	 * The breakpoints must be in msecs.
+	 *
+	 * \param breakpoints the breakpoints to be removed.
+	 */
+	void removeBreakpoints(std::vector<qint64> const& breakpoints);
 
 	/*! \brief Replace a breakpoint by an other.
 	 *

@@ -135,8 +135,24 @@ void ProjectManager::addBreakpoint(qint64 const breakpoint) {
 	emit breakpointsChanged();
 }
 
+void ProjectManager::addBreakpoints(std::vector<qint64> const& breakpoints) {
+	for(qint64 const& breakpoint : breakpoints) {
+		this->breakpoints.insert(breakpoint);
+	}
+	saved = false;
+	emit breakpointsChanged();
+}
+
 void ProjectManager::removeBreakpoint(qint64 const breakpoint) {
 	breakpoints.erase(breakpoint);
+	saved = false;
+	emit breakpointsChanged();
+}
+
+void ProjectManager::removeBreakpoints(std::vector<qint64> const& breakpoints) {
+	for(qint64 const breakpoint : breakpoints) {
+		this->breakpoints.erase(breakpoint);
+	}
 	saved = false;
 	emit breakpointsChanged();
 }

@@ -45,6 +45,14 @@ qint64 VideoPlayerManager::getPosition() const {
 	return player.position();
 }
 
+qint64 VideoPlayerManager::getDuration() const {
+	return player.duration();
+}
+
+QMediaPlayer const& VideoPlayerManager::getPlayer() const {
+	return player;
+}
+
 void VideoPlayerManager::activateVideo() {
 	playlist.clear();
 
@@ -107,10 +115,6 @@ void VideoPlayerManager::seekForward() {
 void VideoPlayerManager::seekBackward() {
 	player.setPosition(player.position() - seekDuration);
 	resetBreakpointsIterators();
-}
-
-QMediaPlayer const& VideoPlayerManager::getPlayer() const {
-	return player;
 }
 
 void VideoPlayerManager::pauseOnBreakpoint(qint64 const& position) {

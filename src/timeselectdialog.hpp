@@ -38,7 +38,6 @@ protected:
 	QWidget& parent;
 	QTimeEdit timeEditor;
 	QPushButton cancelButton, validateButton;
-private:
 };
 
 /*! \brief Jump to time dialog
@@ -61,9 +60,6 @@ public slots:
 	 * This will jump to the specified time.
 	 */
 	virtual void validate();
-
-protected:
-private:
 };
 
 /*! \brief Add breakpoint dialog
@@ -84,7 +80,4 @@ public:
 	 * This will add the specified breakpoint.
 	 */
 	virtual void validate();
-
-protected:
-private:
 };

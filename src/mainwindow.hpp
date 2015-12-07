@@ -50,6 +50,12 @@ public:
 	 */
 	void addProjectBreakpoint(qint64 position);
 
+	/*! \brief Add several breakpoints to the current project.
+	 *
+	 * \param positions the positions of the breakpoints.
+	 */
+	void addProjectBreakpoints(std::vector<qint64> const& positions);
+
 	/*! \brief Get the video player manager.
 	 *
 	 * \return the video player manager.
@@ -183,6 +189,12 @@ public slots:
 	 */
 	void showAddBreakpointDialog();
 
+	/*! \brief Show the "Add Breakpoint regularly" dialog.
+	 *
+	 * Upon successful completion, it will add the specified breakpoints.
+	 */
+	void showAddBreakpointRegularlyDialog();
+
 	/*! \brief Show the "Jump to time" dialog.
 	 *
 	 * Upon successful completion, it will jump to the specified time.
@@ -224,6 +236,7 @@ protected:
 	QAction redoAction;
 	QAction addBreakpointAction;
 	QAction addBreakpointHereAction;
+	QAction addBreakpointRegularly;
 	QAction removeBreakpointAction;
 
 	QPushButton playerPlayPauseButton;

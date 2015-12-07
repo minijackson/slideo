@@ -1,6 +1,7 @@
 #include "mainwindow.hpp"
 
 #include "timeselectdialog.hpp"
+#include "addbreakpointregularlydialog.hpp"
 
 #include <QApplication>
 
@@ -26,6 +27,7 @@ MainWindow::MainWindow()
       , redoAction(QIcon::fromTheme("edit-redo"), "&Redo", this)
       , addBreakpointAction(QIcon::fromTheme("list-add"), "&Add breakpoint", this)
       , addBreakpointHereAction("Add breakpoint at &current position", this)
+      , addBreakpointRegularly("Add breakpoint &regularly", this)
       , removeBreakpointAction(QIcon::fromTheme("list-remove"), "&Remove selected breakpoint(s)",
                                this)
       , playerPlayPauseButton(QIcon::fromTheme("media-playback-start"), "")
@@ -270,6 +272,11 @@ void MainWindow::initActionWidgets() {
 	connect(&addBreakpointHereAction, SIGNAL(triggered()), this, SLOT(addBreakpointHere()));
 	editMenu.addAction(&addBreakpointHereAction);
 
+	addBreakpointRegularly.setEnabled(false);
+	connect(&addBreakpointRegularly, SIGNAL(triggered()), this,
+	        SLOT(showAddBreakpointRegularlyDialog()));
+	editMenu.addAction(&addBreakpointRegularly);
+
 	removeBreakpointAction.setShortcut(QKeySequence("Ctrl+D"));
 	removeBreakpointAction.setEnabled(false);
 	connect(&removeBreakpointAction, SIGNAL(triggered()), this, SLOT(removeDockBreakpoints()));
@@ -329,6 +336,7 @@ void MainWindow::initActionWidgets() {
 	connect(this, SIGNAL(projectActivated(bool)), &redoAction, SLOT(setEnabled(bool)));
 	connect(this, SIGNAL(projectActivated(bool)), &addBreakpointAction, SLOT(setEnabled(bool)));
 	connect(this, SIGNAL(projectActivated(bool)), &addBreakpointHereAction, SLOT(setEnabled(bool)));
+	connect(this, SIGNAL(projectActivated(bool)), &addBreakpointRegularly, SLOT(setEnabled(bool)));
 	connect(this, SIGNAL(projectActivated(bool)), &removeBreakpointAction, SLOT(setEnabled(bool)));
 
 	connect(this, SIGNAL(projectActivated(bool)), startSlideshowAction, SLOT(setEnabled(bool)));
@@ -348,6 +356,10 @@ ProjectManager const& MainWindow::getProject() const {
 
 void MainWindow::addProjectBreakpoint(qint64 position) {
 	project.addBreakpoint(position);
+}
+
+void MainWindow::addProjectBreakpoints(std::vector<qint64> const& positions) {
+	project.addBreakpoints(positions);
 }
 
 VideoPlayerManager const& MainWindow::getVideoPlayer() const {
@@ -510,6 +522,11 @@ void MainWindow::showAddBreakpointDialog() {
 	dialog.exec();
 }
 
+void MainWindow::showAddBreakpointRegularlyDialog() {
+	AddBreakpointRegularlyDialog dialog(*this);
+	dialog.exec();
+}
+
 void MainWindow::showJumpToTimeDialog() {
 	JumpToTimeDialog dialog(*this);
 	dialog.exec();
@@ -521,11 +538,13 @@ void MainWindow::addBreakpointHere() {
 
 void MainWindow::removeDockBreakpoints() {
 	QModelIndexList indexes = breakpointListView.selectionModel()->selectedIndexes();
+	std::vector<qint64> positions{};
 	for(QModelIndex const& index : indexes) {
 		auto positionIt = project.getBreakpoints().cbegin();
 		std::advance(positionIt, index.row());
-		project.removeBreakpoint(*positionIt);
+		positions.push_back(*positionIt);
 	}
+	project.removeBreakpoints(positions);
 }
 
 void MainWindow::alternateFullscreen(bool value) {
